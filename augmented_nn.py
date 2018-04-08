@@ -156,7 +156,7 @@ def augmentation_fit():
 	train_datagen.fit(X_train_3ch)
 	train_generator = train_datagen.flow(X_train_3ch, Y_train, batch_size=32)
 
-	return model.fit_generator(train_generator, steps_per_epoch=10, epochs=100, validation_data=(X_test_3ch, Y_test))
+	return model.fit_generator(train_generator, steps_per_epoch=50, epochs=300, validation_data=(X_test_3ch, Y_test))
 
 
 def normal_fit():
@@ -194,12 +194,14 @@ def run(lr=0.001, augmented=True, modelno=3):  # If modelno changes, change the 
 	else:
 		history = normal_fit()
 
-	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr)
+	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_longer'
 	pickle.dump(history.history, open('histories/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
 
 
-for i in np.arange(0.001, 0.011, 0.001):
-	lr = np.floor(i * 1000) / 1000.0
-	run(lr)
+# for i in np.arange(0.001, 0.011, 0.001):
+# 	lr = np.floor(i * 1000) / 1000.0
+# 	run(lr)
+
+run(lr=0.3)
