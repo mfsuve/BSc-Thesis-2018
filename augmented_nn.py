@@ -194,7 +194,7 @@ def run(lr=0.001, augmented=True, modelno=3):  # If modelno changes, change the 
 	else:
 		history = normal_fit()
 
-	model_name = '105x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr)
+	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr)
 	pickle.dump(history.history, open('histories/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
