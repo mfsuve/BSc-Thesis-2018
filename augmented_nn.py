@@ -16,11 +16,11 @@ global mode
 
 
 def load_data():
-	train_path = 'finals/reduced/train/'
-	test_path = 'finals/reduced/test/'
+	train_path = 'images/train/'
+	test_path = 'images/test/'
 	train_img = []
 	test_img = []
-	num_scrapped_book = 15
+	num_scrapped_book = 100
 	# Collect initials
 	for name in names:
 #		train_img.append(cv2.resize(cv2.imread(train_path + name + '1.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
@@ -205,7 +205,7 @@ X_test_3ch = X_test_3ch.astype('float32') / 255
 # model = create_model2()
 model = create_model_vgg16()
 model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-K.set_value(model.optimizer.lr, 0.001)  # it was 0.01
+K.set_value(model.optimizer.lr, 0.007)  # it was 0.01
 
 # print(K.image_data_format())
 # print(K.backend())
@@ -213,8 +213,8 @@ K.set_value(model.optimizer.lr, 0.001)  # it was 0.01
 history = augmentation_fit()
 # history = normal_fit()
 
-model_name = '20x10_vgg16_' + mode + '_' + K.backend() + '_lr_0.001'
-pickle.dump(history.history, open('lr_test_histories/' + model_name + '.p', 'wb'))
+model_name = '105x10_vgg16_' + mode + '_' + K.backend() + '_lr_0.007'
+pickle.dump(history.history, open('histories/' + model_name + '.p', 'wb'))
 # pickle.dump(history.history, open('30x10histories/vgg16/' + K.backend() + '/' + mode + '_' + K.backend() + '_lrdropped_1.p', 'wb'))
 
 # model_name = mode + '_' + K.backend() + '_vgg16_30x10_lrdropped_longer'
