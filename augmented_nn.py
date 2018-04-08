@@ -12,7 +12,7 @@ from keras.preprocessing.image import ImageDataGenerator
 names = ['hayvan', 'sayitut', 'sefiller', 'sokrates', 'sultan']
 num_test_classes = len(names)
 num_train_classes = 0
-global mode
+global mode, model, X_train_3ch, X_test_3ch, Y_train, Y_test
 
 
 def load_data():
@@ -20,7 +20,7 @@ def load_data():
 	test_path = 'images/test/'
 	train_img = []
 	test_img = []
-	num_scrapped_book = 100
+	num_scrapped_book = 190
 	# Collect initials
 	for name in names:
 #		train_img.append(cv2.resize(cv2.imread(train_path + name + '1.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
@@ -112,33 +112,33 @@ def create_model_vgg16():
 	return m
 
 
-def examine(guess=None):
-	if guess is not None:
-		plt.imshow(X_test[guess, ::-1, :, ::-1])
-		plt.show()
-		predictions = model.predict(X_test_3ch[guess:guess + 1])
-		print('Guess is', names[np.argmax(predictions)])
-	else:
-		guesses = np.argmax(model.predict(X_test_3ch), axis=1)
-		wrong = False
-		for i in range(len(guesses)):
-			plt.title('Guess is %r' % (names[guesses[i]]))
-			plt.imshow(X_test[i, :, ::-1, ::-1])
-			plt.show()
-			if guesses[i] == y_test[i]:
-				print('\tCorrect!')
-			else:
-				print('\tIncorrect!')
-				wrong = True
-
-		if not wrong:
-			print('\nAll the guesses are correct!!!')
-
-	scores = model.evaluate(X_test_3ch, Y_test)
-	print('%s: %.2f%%' % (model.metrics_names[1], scores[1] * 100))
-
-	plt.plot(history.history['val_acc'])
-	plt.show()
+# def examine(guess=None):
+# 	if guess is not None:
+# 		plt.imshow(X_test[guess, ::-1, :, ::-1])
+# 		plt.show()
+# 		predictions = model.predict(X_test_3ch[guess:guess + 1])
+# 		print('Guess is', names[np.argmax(predictions)])
+# 	else:
+# 		guesses = np.argmax(model.predict(X_test_3ch), axis=1)
+# 		wrong = False
+# 		for i in range(len(guesses)):
+# 			plt.title('Guess is %r' % (names[guesses[i]]))
+# 			plt.imshow(X_test[i, :, ::-1, ::-1])
+# 			plt.show()
+# 			if guesses[i] == y_test[i]:
+# 				print('\tCorrect!')
+# 			else:
+# 				print('\tIncorrect!')
+# 				wrong = True
+#
+# 		if not wrong:
+# 			print('\nAll the guesses are correct!!!')
+#
+# 	scores = model.evaluate(X_test_3ch, Y_test)
+# 	print('%s: %.2f%%' % (model.metrics_names[1], scores[1] * 100))
+#
+# 	plt.plot(history.history['val_acc'])
+# 	plt.show()
 
 
 def augmentation_fit():
@@ -164,58 +164,42 @@ def normal_fit():
 	mode = 'normal'
 	return model.fit(X_train_3ch, Y_train, batch_size=32, epochs=600, validation_data=(X_test_3ch, Y_test))
 
-def validate_data(m='train'):
-	print('X_train.size():', len(X_train))
-	print('y_train.size():', len(y_train))
-	print('X_test.size():', len(X_test))
-	print('y_test.size():', len(y_test))
 
-	if m == 'test':
-		X = X_test
-		Y = y_test
+def run(lr=0.001, augmented=True, modelno=3):  # If modelno changes, change the model_name
+	global model, X_train_3ch, X_test_3ch, Y_train, Y_test
+	# Load images
+	(X_train, y_train), (X_test, y_test) = load_data()
+
+	# Adjust sizes
+	Y_train = np_utils.to_categorical(y_train, num_train_classes)
+	Y_test = np_utils.to_categorical(y_test, num_train_classes)
+
+	X_train_3ch = X_train.reshape(X_train.shape[0], 150, 100, 3)
+	X_test_3ch = X_test.reshape(X_test.shape[0], 150, 100, 3)
+
+	X_train_3ch = X_train_3ch.astype('float32') / 255
+	X_test_3ch = X_test_3ch.astype('float32') / 255
+
+	if modelno == 1:
+		model = create_model1()
+	elif modelno == 2:
+		model = create_model2()
+	else:  # default
+		model = create_model_vgg16()
+	model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+	K.set_value(model.optimizer.lr, lr)  # it was 0.01
+
+	if augmented:
+		history = augmentation_fit()
 	else:
-		X = X_train
-		Y = y_train
+		history = normal_fit()
 
-	for pair in zip(X, Y):
-		try:
-			plt.title(names[pair[1]])
-		except IndexError:
-			plt.title(pair[1])
-		plt.imshow(pair[0][:, :, ::-1])
-		plt.show()
+	model_name = '105x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr)
+	pickle.dump(history.history, open('histories/' + model_name + '.p', 'wb'))
+
+	model.save('saved_weights/' + model_name + '.h5')
 
 
-# Load images
-(X_train, y_train), (X_test, y_test) = load_data()
-
-# validate_data('test')
-
-# Adjust sizes
-Y_train = np_utils.to_categorical(y_train, num_train_classes)
-Y_test = np_utils.to_categorical(y_test, num_train_classes)
-
-X_train_3ch = X_train.reshape(X_train.shape[0], 150, 100, 3)
-X_test_3ch = X_test.reshape(X_test.shape[0], 150, 100, 3)
-
-X_train_3ch = X_train_3ch.astype('float32') / 255
-X_test_3ch = X_test_3ch.astype('float32') / 255
-
-# model = create_model1()
-# model = create_model2()
-model = create_model_vgg16()
-model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-K.set_value(model.optimizer.lr, 0.007)  # it was 0.01
-
-# print(K.image_data_format())
-# print(K.backend())
-
-history = augmentation_fit()
-# history = normal_fit()
-
-model_name = '105x10_vgg16_' + mode + '_' + K.backend() + '_lr_0.007'
-pickle.dump(history.history, open('histories/' + model_name + '.p', 'wb'))
-# pickle.dump(history.history, open('30x10histories/vgg16/' + K.backend() + '/' + mode + '_' + K.backend() + '_lrdropped_1.p', 'wb'))
-
-# model_name = mode + '_' + K.backend() + '_vgg16_30x10_lrdropped_longer'
-model.save('saved_weights/' + model_name + '.h5')
+for i in np.arange(0.001, 0.011, 0.001):
+	lr = np.floor(i * 1000) / 1000.0
+	run(lr)
