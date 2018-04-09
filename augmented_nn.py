@@ -156,7 +156,7 @@ def augmentation_fit():
 	train_datagen.fit(X_train_3ch)
 	train_generator = train_datagen.flow(X_train_3ch, Y_train, batch_size=32)
 
-	return model.fit_generator(train_generator, steps_per_epoch=50, epochs=300, validation_data=(X_test_3ch, Y_test))
+	return model.fit_generator(train_generator, steps_per_epoch=30, epochs=300, validation_data=(X_test_3ch, Y_test))
 
 
 def normal_fit():
@@ -204,4 +204,4 @@ def run(lr=0.001, augmented=True, modelno=3):  # If modelno changes, change the 
 # 	lr = np.floor(i * 1000) / 1000.0
 # 	run(lr)
 
-run(lr=0.3)
+run(lr=0.003)
