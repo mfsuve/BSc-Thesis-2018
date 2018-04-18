@@ -92,16 +92,23 @@ def create_model_vgg16():
 		layer.trainable = False
 
 	top_model = Sequential()
-	top_model.add(ZeroPadding2D((1, 1), input_shape=base_model.output_shape[1:]))
-	top_model.add(Conv2D(32, (3, 3), activation='relu'))
-	top_model.add(BatchNormalization())
-	top_model.add(ThresholdedReLU(0))
-	top_model.add(ZeroPadding2D((1, 1)))
-	top_model.add(Conv2D(32, (3, 3), activation='relu'))
+	top_model.add(ZeroPadding2D((4, 4), input_shape=base_model.output_shape[1:]))
+	top_model.add(Conv2D(32, (9, 9), activation='relu'))
+	top_model.add(MaxPooling2D(pool_size=(4, 4)))
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
-	top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	top_model.add(ZeroPadding2D((4, 4)))
+	top_model.add(Conv2D(32, (9, 9), activation='relu'))
+	top_model.add(MaxPooling2D(pool_size=(4, 4)))
+	top_model.add(BatchNormalization())
+	top_model.add(ThresholdedReLU(0))
+
+	top_model.add(ZeroPadding2D((4, 4)))
+	top_model.add(Conv2D(32, (9, 9), activation='relu'))
+	top_model.add(MaxPooling2D(pool_size=(4, 4)))
+	top_model.add(BatchNormalization())
+	top_model.add(ThresholdedReLU(0))
 
 	top_model.add(Flatten())
 	top_model.add(BatchNormalization())
@@ -110,35 +117,6 @@ def create_model_vgg16():
 	m = Model(inputs=base_model.input, outputs=top_model(base_model.output))
 
 	return m
-
-
-# def examine(guess=None):
-# 	if guess is not None:
-# 		plt.imshow(X_test[guess, ::-1, :, ::-1])
-# 		plt.show()
-# 		predictions = model.predict(X_test_3ch[guess:guess + 1])
-# 		print('Guess is', names[np.argmax(predictions)])
-# 	else:
-# 		guesses = np.argmax(model.predict(X_test_3ch), axis=1)
-# 		wrong = False
-# 		for i in range(len(guesses)):
-# 			plt.title('Guess is %r' % (names[guesses[i]]))
-# 			plt.imshow(X_test[i, :, ::-1, ::-1])
-# 			plt.show()
-# 			if guesses[i] == y_test[i]:
-# 				print('\tCorrect!')
-# 			else:
-# 				print('\tIncorrect!')
-# 				wrong = True
-#
-# 		if not wrong:
-# 			print('\nAll the guesses are correct!!!')
-#
-# 	scores = model.evaluate(X_test_3ch, Y_test)
-# 	print('%s: %.2f%%' % (model.metrics_names[1], scores[1] * 100))
-#
-# 	plt.plot(history.history['val_acc'])
-# 	plt.show()
 
 
 def augmentation_fit():
@@ -156,7 +134,7 @@ def augmentation_fit():
 	train_datagen.fit(X_train_3ch)
 	train_generator = train_datagen.flow(X_train_3ch, Y_train, batch_size=32)
 
-	return model.fit_generator(train_generator, steps_per_epoch=30, epochs=300, validation_data=(X_test_3ch, Y_test))
+	return model.fit_generator(train_generator, steps_per_epoch=30, epochs=200, validation_data=(X_test_3ch, Y_test))
 
 
 def normal_fit():
