@@ -95,27 +95,28 @@ def create_model_vgg16():
 	top_model = Sequential()
 	top_model.add(ZeroPadding2D((4, 4), input_shape=base_model.output_shape[1:]))
 	top_model.add(Conv2D(32, (9, 9), activation='relu'))
-	top_model.add(MaxPooling2D(pool_size=(4, 4)))
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
 	top_model.add(ZeroPadding2D((4, 4)))
 	top_model.add(Conv2D(32, (9, 9), activation='relu'))
-	top_model.add(MaxPooling2D(pool_size=(4, 4)))
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
 	top_model.add(ZeroPadding2D((4, 4)))
 	top_model.add(Conv2D(32, (9, 9), activation='relu'))
-	top_model.add(MaxPooling2D(pool_size=(4, 4)))
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
+
+	top_model.add(MaxPooling2D(pool_size=(4, 4)))
 
 	top_model.add(Flatten())
 	top_model.add(BatchNormalization())
 	top_model.add(Dense(num_train_classes, activation='relu'))
 
 	m = Model(inputs=base_model.input, outputs=top_model(base_model.output))
+
+	m.summary()
 
 	return m
 
