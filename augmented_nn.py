@@ -116,8 +116,6 @@ def create_model_vgg16():
 
 	m = Model(inputs=base_model.input, outputs=top_model(base_model.output))
 
-	m.summary()
-
 	return m
 
 
