@@ -130,16 +130,16 @@ def siamese_generator(X, datagen, batch_size=32):
 	while True:
 		for i in range(batch_size):
 			category = categories[i]
-			pairs[0][i, :, :, :] = X[category]
+			pairs[0][i, :, :, :] = datagen.random_transform(X[category])
 			category_2 = category if i >= batch_size // 2 else (category + np.random.randint(1, cls_num)) % cls_num
-			pairs[1][i, :, :, :] = X[category_2]
+			pairs[1][i, :, :, :] = datagen.random_transform(X[category_2])
 		yield (pairs, targets)
 
 
 def augmentation_fit():
 	global mode
 	mode = 'augmentation'
-	train_datagen = ImageDataGenerator(
+	datagen = ImageDataGenerator(
 		rotation_range=20,
 		width_shift_range=0.2,
 		height_shift_range=0.2,
@@ -148,10 +148,15 @@ def augmentation_fit():
 		horizontal_flip=True,
 		fill_mode='constant')  # Constant zero
 
-	train_datagen.fit(X_train_3ch)
-	train_generator = siamese_generator(X_train_3ch, train_datagen)
-	# TODO: Add the validation here
-	return model.fit_generator(train_generator, steps_per_epoch=10, epochs=30)
+	datagen.fit(X_train_3ch)
+	train_generator = siamese_generator(X_train_3ch, datagen)
+	test_generator = siamese_generator(X_train_3ch, datagen, batch_size=100)
+	# TODO Add the validation here
+	test = None
+	for (pairs, targets) in test_generator:
+		test = (pairs, targets)
+		break
+	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test)
 
 
 def normal_fit():
@@ -215,7 +220,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese'
+	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese2'
 	pickle.dump(history.history, open('siamese_histories/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
