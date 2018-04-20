@@ -151,7 +151,7 @@ def augmentation_fit():
 	train_datagen.fit(X_train_3ch)
 	train_generator = siamese_generator(X_train_3ch, train_datagen)
 	# TODO: Add the validation here
-	return model.fit_generator(train_generator, steps_per_epoch=30, epochs=200)
+	return model.fit_generator(train_generator, steps_per_epoch=10, epochs=30)
 
 
 def normal_fit():
