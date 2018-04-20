@@ -108,7 +108,7 @@ def create_model_vgg16():
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
-	top_model.add(MaxPooling2D(pool_size=(4, 4)))
+	top_model.add(MaxPooling2D(pool_size=(2, 2)))
 
 	top_model.add(Flatten())
 	top_model.add(BatchNormalization())
