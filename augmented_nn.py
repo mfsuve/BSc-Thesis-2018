@@ -3,12 +3,15 @@ import numpy as np
 import pickle
 from matplotlib import pyplot as plt
 from keras.models import Sequential, Model
-from keras.layers.core import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D, Input, ZeroPadding2D, ThresholdedReLU, BatchNormalization, merge
+from keras.layers.core import Dense, Dropout, Flatten, Dropout
+from keras.layers import Conv2D, MaxPooling2D, Input, ZeroPadding2D, ThresholdedReLU, BatchNormalization, merge, GlobalAveragePooling2D
 from keras import backend as K
+from keras import regularizers
 from keras.utils import np_utils
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD, Adam
+from keras.initializers import glorot_normal
+from keras.callbacks import EarlyStopping
 
 names = ['hayvan', 'sayitut', 'sefiller', 'sokrates', 'sultan']
 num_test_classes = len(names)
@@ -94,28 +97,41 @@ def create_model_vgg16():
 		layer.trainable = False
 
 	top_model = Sequential()
-	top_model.add(ZeroPadding2D((4, 4), input_shape=base_model.output_shape[1:]))
-	top_model.add(Conv2D(32, (9, 9), activation='relu'))
-	top_model.add(BatchNormalization())
-	top_model.add(ThresholdedReLU(0))
-
-	top_model.add(ZeroPadding2D((4, 4)))
-	top_model.add(Conv2D(32, (9, 9), activation='relu'))
-	top_model.add(BatchNormalization())
-	top_model.add(ThresholdedReLU(0))
-
-	top_model.add(ZeroPadding2D((4, 4)))
-	top_model.add(Conv2D(32, (9, 9), activation='relu'))
-	top_model.add(BatchNormalization())
-	top_model.add(ThresholdedReLU(0))
-
+	top_model.add(ZeroPadding2D((2, 2), input_shape=base_model.output_shape[1:]))
+	top_model.add(Conv2D(32, (5, 5), activation='relu', kernel_regularizer=regularizers.l1(0.0001), kernel_initializer=glorot_normal()))
+	# top_model.add(ZeroPadding2D((1, 1)))
 	top_model.add(MaxPooling2D(pool_size=(2, 2)))
-
-	top_model.add(Flatten())
+	top_model.add(Dropout(0.25))
 	top_model.add(BatchNormalization())
-	top_model.add(Dense(num_train_classes, activation='relu'))
+	top_model.add(ThresholdedReLU(0))
+
+	# top_model.add(ZeroPadding2D((2, 2)))
+	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
+	# top_model.add(ZeroPadding2D((1, 1)))
+	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	# top_model.add(Dropout(0.25))
+	# top_model.add(BatchNormalization())
+	# top_model.add(ThresholdedReLU(0))
+
+	# top_model.add(ZeroPadding2D((2, 2)))
+	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
+	# top_model.add(ZeroPadding2D((1, 1)))
+	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	# top_model.add(Dropout(0.25))
+	# top_model.add(BatchNormalization())
+	# top_model.add(ThresholdedReLU(0))
+
+	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+	# top_model.add(Flatten())
+	top_model.add(GlobalAveragePooling2D())
+	top_model.add(BatchNormalization())
+	top_model.add(Dense(num_train_classes, activation='relu', kernel_regularizer=regularizers.l1(0.0001), kernel_initializer=glorot_normal()))
+	top_model.add(Dropout(0.1))
 
 	m = Model(inputs=base_model.input, outputs=top_model(base_model.output))
+
+	top_model.summary()
 
 	return m
 
@@ -151,12 +167,12 @@ def augmentation_fit():
 
 	datagen.fit(X_train_3ch)
 	train_generator = siamese_generator(X_train_3ch, datagen)
-	test_generator = siamese_generator(X_train_3ch, datagen, batch_size=100)
-	test = None
-	for (pairs, targets) in test_generator:
-		test = (pairs, targets)
-		break
-	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test)
+	test_generator = siamese_generator(X_train_3ch, datagen)
+	# TODO steps_per_epoch=20, epochs=200
+	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200
+	                           , validation_data=test_generator, validation_steps=3
+	                           # , callbacks=[EarlyStopping(patience=2)]
+	                           )
 
 
 def normal_fit():
@@ -176,7 +192,7 @@ def siamese(smodel):
 	L1 = lambda x: K.abs(x[0] - x[1])
 	both = merge([encoded_l, encoded_r], mode=L1, output_shape=lambda x: x[0])
 
-	prediction = Dense(1, activation='sigmoid')(both)
+	prediction = Dense(1, activation='sigmoid', kernel_regularizer=regularizers.l1(0.0001), kernel_initializer=glorot_normal())(both)
 
 	return Model(inputs=[left_input, right_input], outputs=prediction)
 
@@ -206,7 +222,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	model = siamese(model)
 
 	if optimizer == 'sgd':
-		opt = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
+		opt = SGD(lr=lr, decay=1e-4, momentum=0.99, nesterov=True)
 	else:
 		opt = Adam(0.00006)
 	model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
@@ -220,10 +236,10 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese2'
+	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_' + optimizer
 	pickle.dump(history.history, open('siamese_histories/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
 
 
-run(lr=0.003)
+run(lr=0.003, optimizer='sgd')
