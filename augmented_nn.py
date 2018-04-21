@@ -84,6 +84,7 @@ def create_model2():
 
 
 def create_model_vgg16():
+	# TODO													OVERFIT!!!
 	from keras.applications.vgg16 import VGG16
 
 	input_tensor = Input(shape=(150, 100, 3))
@@ -151,7 +152,6 @@ def augmentation_fit():
 	datagen.fit(X_train_3ch)
 	train_generator = siamese_generator(X_train_3ch, datagen)
 	test_generator = siamese_generator(X_train_3ch, datagen, batch_size=100)
-	# TODO Add the validation here
 	test = None
 	for (pairs, targets) in test_generator:
 		test = (pairs, targets)
