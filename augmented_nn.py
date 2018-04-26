@@ -147,9 +147,10 @@ def siamese_generator(X, datagen, batch_size=32):
 	while True:
 		for i in range(batch_size):
 			category = categories[i]
-			pairs[0][i, :, :, :] = datagen.random_transform(X[category])
+			# TODO 
+			pairs[0][i, :, :, :] = X[category] #datagen.random_transform(X[category])
 			category_2 = category if i >= batch_size // 2 else (category + np.random.randint(1, cls_num)) % cls_num
-			pairs[1][i, :, :, :] = datagen.random_transform(X[category_2])
+			pairs[1][i, :, :, :] = X[category_2] #datagen.random_transform(X[category_2])
 		yield (pairs, targets)
 
 
