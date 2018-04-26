@@ -139,18 +139,19 @@ def create_model_vgg16():
 def siamese_generator(X, datagen, batch_size=32):
 	cls_num = X.shape[0]
 	batch_size = min(batch_size, cls_num - 1)
-	categories = np.random.choice(cls_num, size=(batch_size,), replace=False)
+#	categories = np.random.choice(cls_num, size=(batch_size,), replace=False)
 	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
 	targets = np.zeros((batch_size,))
 	targets[batch_size//2:] = 1
 
 	while True:
+		categories = np.random.choice(cls_num, size=(batch_size,), replace=False)
 		for i in range(batch_size):
 			category = categories[i]
 			# TODO 
-			pairs[0][i, :, :, :] = X[category] #datagen.random_transform(X[category])
+			pairs[0][i, :, :, :] = datagen.random_transform(X[category])
 			category_2 = category if i >= batch_size // 2 else (category + np.random.randint(1, cls_num)) % cls_num
-			pairs[1][i, :, :, :] = X[category_2] #datagen.random_transform(X[category_2])
+			pairs[1][i, :, :, :] = datagen.random_transform(X[category_2])
 		yield (pairs, targets)
 
 
