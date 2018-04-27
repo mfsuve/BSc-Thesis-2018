@@ -12,6 +12,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD, Adam
 from keras.initializers import glorot_normal
 from keras.callbacks import EarlyStopping
+from matplotlib.backends.backend_tkagg import _BackendTkAgg
 
 names = ['hayvan', 'sayitut', 'sefiller', 'sokrates', 'sultan']
 num_test_classes = len(names)
@@ -87,7 +88,6 @@ def create_model2():
 
 
 def create_model_vgg16():
-	# TODO													OVERFIT!!!
 	from keras.applications.vgg16 import VGG16
 
 	input_tensor = Input(shape=(150, 100, 3))
@@ -131,15 +131,13 @@ def create_model_vgg16():
 
 	m = Model(inputs=base_model.input, outputs=top_model(base_model.output))
 
-	top_model.summary()
-
 	return m
 
 
-def siamese_generator(X, datagen, batch_size=32):
+def create_train_generator(datagen, batch_size=32):
+	X = X_train_3ch
 	cls_num = X.shape[0]
 	batch_size = min(batch_size, cls_num - 1)
-#	categories = np.random.choice(cls_num, size=(batch_size,), replace=False)
 	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
 	targets = np.zeros((batch_size,))
 	targets[batch_size//2:] = 1
@@ -152,6 +150,23 @@ def siamese_generator(X, datagen, batch_size=32):
 			pairs[0][i, :, :, :] = datagen.random_transform(X[category])
 			category_2 = category if i >= batch_size // 2 else (category + np.random.randint(1, cls_num)) % cls_num
 			pairs[1][i, :, :, :] = datagen.random_transform(X[category_2])
+		yield (pairs, targets)
+
+
+def create_test_generator(datagen=None, batch_size=32):
+	cls_num = X_train_3ch.shape[0]
+	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
+	targets = np.zeros((batch_size,))
+
+	while True:
+		for i in range(batch_size):
+			category_test = np.random.randint(0, X_test_3ch.shape[0])
+			if i >= batch_size // 2:
+				category_train = category_test // 2
+			else:
+				category_train = num_test_classes + np.random.choice(num_train_classes - num_test_classes)
+			pairs[0][i, :, :, :] = X_test_3ch[category_test]
+			pairs[1][i, :, :, :] = X_train_3ch[category_train]
 		yield (pairs, targets)
 
 
@@ -168,13 +183,23 @@ def augmentation_fit():
 		fill_mode='constant')  # Constant zero
 
 	datagen.fit(X_train_3ch)
-	train_generator = siamese_generator(X_train_3ch, datagen)
-	test_generator = siamese_generator(X_train_3ch, datagen)
+	train_generator = create_train_generator(datagen)
+	test_generator = create_test_generator(datagen)
+	# test_generator = create_test_generator(batch_size=4)
+
+	# for (pairs, targets) in test_generator:
+	# 	for i in range(len(targets)):
+	# 		img1, img2 = pairs[0][i, :, :, ::-1], pairs[1][i, :, :, ::-1]
+	# 		result = 'Same' if targets[i] == 1 else 'Different'
+	# 		plt.suptitle(result)
+	# 		plt.subplot(1, 2, 1)
+	# 		plt.imshow(img1)
+	# 		plt.subplot(1, 2, 2)
+	# 		plt.imshow(img2)
+	# 		plt.show()
+
 	# TODO steps_per_epoch=20, epochs=200
-	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200
-	                           , validation_data=test_generator, validation_steps=3
-	                           # , callbacks=[EarlyStopping(patience=2)]
-	                           )
+	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test_generator, validation_steps=3)
 
 
 def normal_fit():
