@@ -105,21 +105,21 @@ def create_model_vgg16():
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
-	# top_model.add(ZeroPadding2D((2, 2)))
-	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
-	# top_model.add(ZeroPadding2D((1, 1)))
-	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
-	# top_model.add(Dropout(0.25))
-	# top_model.add(BatchNormalization())
-	# top_model.add(ThresholdedReLU(0))
+	top_model.add(ZeroPadding2D((2, 2)))
+	top_model.add(Conv2D(32, (5, 5), activation='relu'))
+	top_model.add(ZeroPadding2D((1, 1)))
+	top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	top_model.add(Dropout(0.25))
+	top_model.add(BatchNormalization())
+	top_model.add(ThresholdedReLU(0))
 
-	# top_model.add(ZeroPadding2D((2, 2)))
-	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
-	# top_model.add(ZeroPadding2D((1, 1)))
-	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
-	# top_model.add(Dropout(0.25))
-	# top_model.add(BatchNormalization())
-	# top_model.add(ThresholdedReLU(0))
+	top_model.add(ZeroPadding2D((2, 2)))
+	top_model.add(Conv2D(32, (5, 5), activation='relu'))
+	top_model.add(ZeroPadding2D((1, 1)))
+	top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	top_model.add(Dropout(0.25))
+	top_model.add(BatchNormalization())
+	top_model.add(ThresholdedReLU(0))
 
 	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -146,7 +146,6 @@ def create_train_generator(datagen, batch_size=32):
 		categories = np.random.choice(cls_num, size=(batch_size,), replace=False)
 		for i in range(batch_size):
 			category = categories[i]
-			# TODO 
 			pairs[0][i, :, :, :] = datagen.random_transform(X[category])
 			category_2 = category if i >= batch_size // 2 else (category + np.random.randint(1, cls_num)) % cls_num
 			pairs[1][i, :, :, :] = datagen.random_transform(X[category_2])
@@ -154,9 +153,9 @@ def create_train_generator(datagen, batch_size=32):
 
 
 def create_test_generator(datagen=None, batch_size=32):
-	cls_num = X_train_3ch.shape[0]
 	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
 	targets = np.zeros((batch_size,))
+	targets[batch_size//2:] = 1
 
 	while True:
 		for i in range(batch_size):
@@ -263,7 +262,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_' + optimizer
+	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_and_tested_on_test_images'# + optimizer
 	pickle.dump(history.history, open('siamese_histories/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
