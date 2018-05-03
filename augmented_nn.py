@@ -183,7 +183,7 @@ def augmentation_fit():
 
 	datagen.fit(X_train_3ch)
 	train_generator = create_train_generator(datagen)
-	test_generator = create_test_generator(datagen)
+	test_generator = create_train_generator(datagen)
 	# test_generator = create_test_generator(batch_size=4)
 
 	# for (pairs, targets) in test_generator:
