@@ -183,7 +183,7 @@ def augmentation_fit():
 
 	datagen.fit(X_train_3ch)
 	train_generator = create_train_generator(datagen)
-	test_generator = create_test_generator(datagen)
+	test_generator = create_train_generator(datagen)
 	# test_generator = create_test_generator(batch_size=4)
 
 	# for (pairs, targets) in test_generator:
@@ -262,7 +262,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_and_tested_on_test_images_and smaller'# + optimizer
+	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_and_tested_on_train_images_and_smaller'# + optimizer
 	pickle.dump(history.history, open('siamese_histories/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
