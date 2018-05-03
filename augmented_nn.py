@@ -265,7 +265,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_and_tested_on_train_images_and_smaller'# + optimizer
 	pickle.dump(history.history, open('siamese_histories/' + model_name + '.p', 'wb'))
 
-	model.save('saved_weights/' + model_name + '.h5')
+#	model.save('saved_weights/' + model_name + '.h5')
 
 
 run(lr=0.003, optimizer='sgd')
