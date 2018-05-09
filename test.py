@@ -46,7 +46,7 @@ if __name__ == '__main__':
 		image = cv2.resize(cv2.imread(image_path), (100, 150), interpolation=cv2.INTER_CUBIC)
 		print('Guessing', name)
 		result, predictmax, index = guess(image)
-		guesses.append({'name': name, 'result': names[index], 'predictmax': predictmax, 'index'})
+		guesses.append({'name': name, 'result': names[index], 'predictmax': predictmax, 'index': index})
 		# plt.title(name + '\nmax prediction: ' + str(predictmax), result)
 		# plt.imshow(result[:, :, ::-1])
 		# plt.show()
