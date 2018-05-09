@@ -103,13 +103,13 @@ def create_model_vgg16():
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
-	# top_model.add(ZeroPadding2D((2, 2)))
-	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
-	# top_model.add(ZeroPadding2D((1, 1)))
-	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
-	# top_model.add(Dropout(0.25))
-	# top_model.add(BatchNormalization())
-	# top_model.add(ThresholdedReLU(0))
+	top_model.add(ZeroPadding2D((2, 2)))
+	top_model.add(Conv2D(32, (5, 5), activation='relu'))
+	top_model.add(ZeroPadding2D((1, 1)))
+	top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	top_model.add(Dropout(0.25))
+	top_model.add(BatchNormalization())
+	top_model.add(ThresholdedReLU(0))
 	#
 	# top_model.add(ZeroPadding2D((2, 2)))
 	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
@@ -248,7 +248,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = 'siamese_lr_' + str(lr)
+	model_name = 'siamese_lr_' + str(lr) + '_two_blocks'
 	pickle.dump(history.history, open('siamese_histories/final_test/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
