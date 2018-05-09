@@ -16,6 +16,7 @@ def guess(img, batch_size=32):
 		train_image = cv2.imread(book_path)
 		pairs[0][i, :, :, :] = img
 		pairs[1][i, :, :, :] = train_image
+		print('book', i+1, '->', book)
 		i += 1
 		if i > batch_size:
 			i = 0
