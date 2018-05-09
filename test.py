@@ -34,7 +34,7 @@ def guess(img):
 		list_test.append(img)
 	pairs[0] = np.array(list_test)
 	predictions = model.predict(pairs, verbose=1)
-	print('max prediction:', max(predictions))
+	print('predictions:', predictions)
 	index = np.argmax(predictions)
 	return pairs[1][index], max(predictions), names[index]
 
