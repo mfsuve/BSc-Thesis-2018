@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from keras.models import load_model
 
 # train imagelar ile test edince doğru veriyor
-path = 'images/test'
+path = 'images/train'
 
 print('Model is loading')
 model = load_model('saved_weights/siamese_lr_0.01_two_blocks.h5')
@@ -47,8 +47,5 @@ if __name__ == '__main__':
 		print('Guessing', name)
 		result, predictmax, index = guess(image)
 		guesses.append({'name': name, 'result': names[index], 'predictmax': predictmax, 'index': index})
-		# plt.title(name + '\nmax prediction: ' + str(predictmax), result)
-		# plt.imshow(result[:, :, ::-1])
-		# plt.show()
 
 pickle.dump(guesses, open('guesses.p', 'wb'))
