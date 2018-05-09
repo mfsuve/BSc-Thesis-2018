@@ -33,9 +33,9 @@ def guess(img):
 	for _ in range(195):
 		list_test.append(img)
 	pairs[0] = np.array(list_test)
-	predictions = model.predict(pairs, verbose=1)
-	print('predictions:', predictions)
+	predictions = model.predict(pairs)
 	index = np.argmax(predictions)
+	print(str(index) + ':', max(predictions))
 	return pairs[1][index], max(predictions), index
 
 
@@ -48,4 +48,4 @@ if __name__ == '__main__':
 		result, predictmax, index = guess(image)
 		guesses.append({'name': name, 'result': names[index], 'predictmax': predictmax, 'index': index})
 
-pickle.dump(guesses, open('guesses.p', 'wb'))
+pickle.dump(guesses, open('guesses_0.01.p', 'wb'))

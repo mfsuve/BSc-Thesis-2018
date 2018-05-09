@@ -103,13 +103,13 @@ def create_model_vgg16():
 	top_model.add(BatchNormalization())
 	top_model.add(ThresholdedReLU(0))
 
-	top_model.add(ZeroPadding2D((2, 2)))
-	top_model.add(Conv2D(32, (5, 5), activation='relu'))
-	top_model.add(ZeroPadding2D((1, 1)))
-	top_model.add(MaxPooling2D(pool_size=(2, 2)))
-	top_model.add(Dropout(0.25))
-	top_model.add(BatchNormalization())
-	top_model.add(ThresholdedReLU(0))
+	# top_model.add(ZeroPadding2D((2, 2)))
+	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
+	# top_model.add(ZeroPadding2D((1, 1)))
+	# top_model.add(MaxPooling2D(pool_size=(2, 2)))
+	# top_model.add(Dropout(0.25))
+	# top_model.add(BatchNormalization())
+	# top_model.add(ThresholdedReLU(0))
 	#
 	# top_model.add(ZeroPadding2D((2, 2)))
 	# top_model.add(Conv2D(32, (5, 5), activation='relu'))
@@ -124,8 +124,8 @@ def create_model_vgg16():
 	# top_model.add(Flatten())
 	top_model.add(GlobalAveragePooling2D())
 	top_model.add(BatchNormalization())
-	top_model.add(Dense(num_train_classes, activation='relu', kernel_regularizer=regularizers.l1(0.0001), kernel_initializer=glorot_normal()))
-	top_model.add(Dropout(0.1))
+	top_model.add(Dense(32, activation='relu', kernel_regularizer=regularizers.l1(0.0001), kernel_initializer=glorot_normal()))
+	top_model.add(Dropout(0.2))
 
 	m = Model(inputs=base_model.input, outputs=top_model(base_model.output))
 
@@ -248,7 +248,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = 'siamese_lr_' + str(lr) + '_two_blocks'
+	model_name = 'siamese_lr_' + str(lr)
 	pickle.dump(history.history, open('siamese_histories/final_test/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
