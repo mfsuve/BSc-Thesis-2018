@@ -36,7 +36,7 @@ def guess(img):
 	predictions = model.predict(pairs, verbose=1)
 	print('max prediction:', max(predictions))
 	index = np.argmax(predictions)
-	return pairs[1][index], max(predictions), names[i]
+	return pairs[1][index], max(predictions), names[index]
 
 
 guesses = []
