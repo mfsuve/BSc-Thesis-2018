@@ -11,8 +11,6 @@ from keras.utils import np_utils
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD, Adam
 from keras.initializers import glorot_normal
-from keras.callbacks import EarlyStopping
-from matplotlib.backends.backend_tkagg import _BackendTkAgg
 
 names = ['hayvan', 'sayitut', 'sefiller', 'sokrates', 'sultan']
 num_test_classes = len(names)
@@ -184,18 +182,6 @@ def augmentation_fit():
 	datagen.fit(X_train_3ch)
 	train_generator = create_train_generator(datagen)
 	test_generator = create_test_generator(datagen)
-	# test_generator = create_test_generator(batch_size=4)
-
-	# for (pairs, targets) in test_generator:
-	# 	for i in range(len(targets)):
-	# 		img1, img2 = pairs[0][i, :, :, ::-1], pairs[1][i, :, :, ::-1]
-	# 		result = 'Same' if targets[i] == 1 else 'Different'
-	# 		plt.suptitle(result)
-	# 		plt.subplot(1, 2, 1)
-	# 		plt.imshow(img1)
-	# 		plt.subplot(1, 2, 2)
-	# 		plt.imshow(img2)
-	# 		plt.show()
 
 	# TODO steps_per_epoch=20, epochs=200
 	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test_generator, validation_steps=3)
@@ -262,10 +248,10 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = '195x10_vgg16_' + mode + '_' + K.backend() + '_lr_' + str(lr) + '_siamese_and_tested_on_test_images_and_smaller'# + optimizer
-	pickle.dump(history.history, open('siamese_histories/' + model_name + '.p', 'wb'))
+	model_name = 'siamese_lr_' + str(lr)
+	pickle.dump(history.history, open('siamese_histories/final_test/' + model_name + '.p', 'wb'))
 
-#	model.save('saved_weights/' + model_name + '.h5')
+	model.save('saved_weights/' + model_name + '.h5')
 
 
 run(lr=0.003, optimizer='sgd')
