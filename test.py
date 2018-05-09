@@ -36,7 +36,7 @@ def guess(img):
 	predictions = model.predict(pairs, verbose=1)
 	print('predictions:', predictions)
 	index = np.argmax(predictions)
-	return pairs[1][index], max(predictions), names[index]
+	return pairs[1][index], max(predictions), index
 
 
 guesses = []
@@ -45,8 +45,8 @@ if __name__ == '__main__':
 		image_path = os.path.join(path, name)
 		image = cv2.resize(cv2.imread(image_path), (100, 150), interpolation=cv2.INTER_CUBIC)
 		print('Guessing', name)
-		result, predictmax, result_name = guess(image)
-		guesses.append({'name': name, 'result': result_name, 'predictmax': predictmax})
+		result, predictmax, index = guess(image)
+		guesses.append({'name': name, 'result': names[index], 'predictmax': predictmax, 'index'})
 		# plt.title(name + '\nmax prediction: ' + str(predictmax), result)
 		# plt.imshow(result[:, :, ::-1])
 		# plt.show()
