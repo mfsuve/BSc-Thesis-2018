@@ -254,4 +254,4 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	model.save('saved_weights/' + model_name + '.h5')
 
 
-run(lr=0.003, optimizer='sgd')
+run(lr=0.007, optimizer='sgd')
