@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from keras.models import load_model
 
 # train imagelar ile test edince doğru veriyor
-path = 'images/train'
+path = 'images/test'
 
 print('Model is loading')
 model = load_model('saved_weights/siamese_lr_0.007small_augmentation.h5')
