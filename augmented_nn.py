@@ -258,7 +258,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = 'siamese_lr_' + str(lr)
+	model_name = 'siamese_lr_' + str(lr) + 'small_augmentation'
 	pickle.dump(history.history, open('siamese_histories/final_test/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
