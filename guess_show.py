@@ -4,10 +4,11 @@ import cv2
 import os
 
 
-guesses = pickle.load(open('guesses_on_train.p', 'rb'))
+# guesses = pickle.load(open('guesses_on_train.p', 'rb'))
+guesses = pickle.load(open('guesses.p', 'rb'))
 train_path = 'images/train'
-test_path = 'images/train'
-# test_path = 'images/test'
+# test_path = 'images/train'
+test_path = 'images/test'
 
 for guess in guesses:
 	name = guess['name']

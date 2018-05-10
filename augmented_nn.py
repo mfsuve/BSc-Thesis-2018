@@ -153,15 +153,13 @@ def create_train_generator(datagen, batch_size=32):
 def create_test_generator(datagen=None, batch_size=32):
 	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
 	targets = np.zeros((batch_size,))
-	targets[batch_size//2:] = 1
+	# targets[batch_size//2:] = 1
+	targets[:] = 1
 
 	while True:
 		for i in range(batch_size):
 			category_test = np.random.randint(0, X_test_3ch.shape[0])
-			if i >= batch_size // 2:
-				category_train = category_test // 2
-			else:
-				category_train = num_test_classes + np.random.choice(num_train_classes - num_test_classes)
+			category_train = category_test // 2
 			pairs[0][i, :, :, :] = X_test_3ch[category_test]
 			pairs[1][i, :, :, :] = X_train_3ch[category_train]
 		yield (pairs, targets)
@@ -171,20 +169,32 @@ def augmentation_fit():
 	global mode
 	mode = 'augmentation'
 	datagen = ImageDataGenerator(
-		rotation_range=20,
-		width_shift_range=0.2,
-		height_shift_range=0.2,
-		shear_range=0.2,
-		zoom_range=0.2,
+		rotation_range=15,
+		width_shift_range=0.05,
+		height_shift_range=0.05,
+		shear_range=0.05,
+		zoom_range=0.05,
 		horizontal_flip=True,
-		fill_mode='constant')  # Constant zero
+		# TODO fill_mode='constant')  # Constant zero
+		fill_mode='reflect')
 
 	datagen.fit(X_train_3ch)
 	train_generator = create_train_generator(datagen)
-	test_generator = create_test_generator(datagen)
+	test_generator = create_test_generator(datagen, batch_size=4)
+
+	# for (pairs, targets) in train_generator:
+	# 	for i in range(len(targets)):
+	# 		img1, img2 = pairs[0][i, :, :, ::-1], pairs[1][i, :, :, ::-1]
+	# 		result = 'Same' if targets[i] == 1 else 'Different'
+	# 		plt.suptitle(result)
+	# 		plt.subplot(1, 2, 1)
+	# 		plt.imshow(img1)
+	# 		plt.subplot(1, 2, 2)
+	# 		plt.imshow(img2)
+	# 		plt.show()
 
 	# TODO steps_per_epoch=20, epochs=200
-	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test_generator, validation_steps=3)
+	return model.fit_generator(train_generator, steps_per_epoch=50, epochs=400, validation_data=test_generator, validation_steps=3)
 
 
 def normal_fit():
