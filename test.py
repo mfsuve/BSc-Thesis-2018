@@ -10,7 +10,7 @@ from keras.models import load_model
 path = 'images/test'
 
 print('Model is loading')
-# model = load_model('saved_weights/siamese_lr_0.007_adapted.h5')
+model = load_model('saved_weights/siamese_lr_0.007_adapted.h5')
 print('Model is loaded')
 
 train_path = 'images/train/'
