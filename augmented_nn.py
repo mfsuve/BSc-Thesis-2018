@@ -242,7 +242,7 @@ def augmentation_fit():
 	# 		plt.show()
 
 	# TODO steps_per_epoch=20, epochs=200
-	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test_generator, validation_steps=3)
+	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=300, validation_data=test_generator, validation_steps=5)
 
 
 def normal_fit():
@@ -325,4 +325,4 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	model.save('saved_weights/' + model_name + '.h5')
 
 
-run(lr=0.007, optimizer='sgd')
+run(lr=0.003, optimizer='sgd')
