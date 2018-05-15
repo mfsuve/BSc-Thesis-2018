@@ -22,6 +22,8 @@ names = []
 
 camera_book_names = ['hayvan', 'sayitut', 'sefiller', 'sokrates', 'sultan']
 for name in camera_book_names:
+	list_train.append(cv2.resize(cv2.imread(train_path + name + '2.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
+	names.append(name + '2.png')
 	if name == 'sultan' or name == 'sokrates':
 		pass
 	else:
