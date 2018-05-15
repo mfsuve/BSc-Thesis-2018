@@ -26,12 +26,17 @@ def load_data():
 	num_scrapped_book = 190
 	# Collect initials
 	for name in names:
-#		train_img.append(cv2.resize(cv2.imread(train_path + name + '1.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
 		train_img.append(cv2.resize(cv2.imread(train_path + name + '2.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
-		test_img.append(cv2.resize(cv2.imread(test_path + name + '_test1.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
+		# Doing for adaptation
+		# put some of the test images into train images
+		if name == 'sultan' or name == 'sokrates':
+			test_img.append(cv2.resize(cv2.imread(test_path + name + '_test1.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
+		else:
+			train_img.append(cv2.resize(cv2.imread(test_path + name + '_test1.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
 		test_img.append(cv2.resize(cv2.imread(test_path + name + '_test2.png'), (100, 150), interpolation=cv2.INTER_CUBIC))
 
-	first_books_test_labels = [val for val in range(num_test_classes) for _ in range(2)]
+	# first_books_test_labels = [val for val in range(num_test_classes) for _ in range(2)]
+	first_books_test_labels = [0, 1, 2, 3, 3, 4, 4]
 
 	# Collect web-scrapped books
 	for i in range(num_scrapped_book):
@@ -40,7 +45,11 @@ def load_data():
 	global num_train_classes
 	num_train_classes = num_test_classes + num_scrapped_book
 
-	return (np.array(train_img), np.arange(num_train_classes)), (np.array(test_img), np.array(first_books_test_labels))
+	first_books_train_labels = [0, 0, 1, 1, 2, 2, 3, 4]
+	train_labels = [x for x in range(num_test_classes, num_test_classes + num_scrapped_book)]
+
+	return (np.array(train_img), np.array(first_books_train_labels + train_labels)),\
+		   (np.array(test_img), np.array(first_books_test_labels))
 
 
 def create_model1():
@@ -132,9 +141,46 @@ def create_model_vgg16():
 	return m
 
 
+def same_train(category):
+	if category < 6:
+		return (category // 2) * 2 + np.random.randint(2)
+	return category
+
+
+# def same_test(category):
+# 	if category > 2:
+# 		category += 1
+# 		return (category // 2) * 2 + np.random.randint(2) - 1
+# 	return category
+
+
+def same_test(category):
+	if category > 2:
+		category += 1
+		return category // 2 + 4
+	return np.random.randint(2) + category * 2
+
+
+def different_train(category):
+	num_train_images = X_train_3ch.shape[0]
+	if category < 6:
+		category = (category // 2) * 2
+		return (category + np.random.randint(2, num_train_images)) % num_train_images
+	return (category + np.random.randint(1, num_train_images)) % num_train_images
+
+
+def different_test(category):
+	num_test_images = X_test_3ch.shape[0]
+	if category > 2:
+		category += 1
+		category = (category // 2) * 2 - 1
+		return (category + np.random.randint(2, num_test_images)) % num_test_images
+	return (category + np.random.randint(1, num_test_images)) % num_test_images
+
+
 def create_train_generator(datagen, batch_size=32):
 	X = X_train_3ch
-	cls_num = X.shape[0]
+	cls_num = num_train_classes
 	batch_size = min(batch_size, cls_num - 1)
 	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
 	targets = np.zeros((batch_size,))
@@ -145,7 +191,7 @@ def create_train_generator(datagen, batch_size=32):
 		for i in range(batch_size):
 			category = categories[i]
 			pairs[0][i, :, :, :] = datagen.random_transform(X[category])
-			category_2 = category if i >= batch_size // 2 else (category + np.random.randint(1, cls_num)) % cls_num
+			category_2 = same_train(category) if i >= batch_size // 2 else different_train(category)
 			pairs[1][i, :, :, :] = datagen.random_transform(X[category_2])
 		yield (pairs, targets)
 
@@ -159,7 +205,7 @@ def create_test_generator(datagen=None, batch_size=32):
 	while True:
 		for i in range(batch_size):
 			category_test = np.random.randint(0, X_test_3ch.shape[0])
-			category_train = category_test // 2
+			category_train = same_test(category_test)
 			pairs[0][i, :, :, :] = X_test_3ch[category_test]
 			pairs[1][i, :, :, :] = X_train_3ch[category_train]
 		yield (pairs, targets)
@@ -174,15 +220,17 @@ def augmentation_fit():
 		height_shift_range=0.05,
 		shear_range=0.05,
 		zoom_range=0.05,
-		horizontal_flip=True,
+		# horizontal_flip=True,
+		featurewise_center=True,
 		# TODO fill_mode='constant')  # Constant zero
-		fill_mode='reflect')
+		fill_mode='constant')  # Constant zero
 
 	datagen.fit(X_train_3ch)
 	train_generator = create_train_generator(datagen)
-	test_generator = create_test_generator(datagen, batch_size=4)
+	test_generator = create_test_generator(datagen)
 
-	# for (pairs, targets) in train_generator:
+	# for (pairs, targets) in test_generator:
+	# 	print('started new one')
 	# 	for i in range(len(targets)):
 	# 		img1, img2 = pairs[0][i, :, :, ::-1], pairs[1][i, :, :, ::-1]
 	# 		result = 'Same' if targets[i] == 1 else 'Different'
@@ -194,7 +242,7 @@ def augmentation_fit():
 	# 		plt.show()
 
 	# TODO steps_per_epoch=20, epochs=200
-	return model.fit_generator(train_generator, steps_per_epoch=50, epochs=400, validation_data=test_generator, validation_steps=3)
+	return model.fit_generator(train_generator, steps_per_epoch=20, epochs=200, validation_data=test_generator, validation_steps=3)
 
 
 def normal_fit():
@@ -223,6 +271,19 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	global model, X_train_3ch, X_test_3ch, Y_train, Y_test
 	# Load images
 	(X_train, y_train), (X_test, y_test) = load_data()
+
+	# TODO image'ları, labelları title'a koyarak kontrol et
+	# X = X_test
+	# y = y_test
+	# X = X_train
+	# y = y_train
+	# for i in range(len(X)):
+	# 	try:
+	# 		plt.title(names[y[i]])
+	# 	except IndexError:
+	# 		plt.title('book_' + str(y[i]))
+	# 	plt.imshow(X[i])
+	# 	plt.show()
 
 	# Adjust sizes
 	Y_train = np_utils.to_categorical(y_train, num_train_classes)
@@ -258,7 +319,7 @@ def run(lr=0.001, augmented=True, modelno=3, optimizer='sgd'):  # If modelno cha
 	else:
 		history = normal_fit()
 
-	model_name = 'siamese_lr_' + str(lr) + 'small_augmentation'
+	model_name = 'siamese_lr_' + str(lr) + '_adapted'
 	pickle.dump(history.history, open('siamese_histories/final_test/' + model_name + '.p', 'wb'))
 
 	model.save('saved_weights/' + model_name + '.h5')
