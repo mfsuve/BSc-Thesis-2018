@@ -10,7 +10,7 @@ from keras.models import load_model
 path = 'images/test'
 
 print('Model is loading')
-model = load_model('saved_weights/siamese_lr_0.007_adapted.h5')
+model = load_model('saved_weights/siamese_lr_0.01_adapted.h5')
 print('Model is loaded')
 
 train_path = 'images/train/'
@@ -45,6 +45,7 @@ for i in range(190):
 # 	names.append(book)
 
 pairs[1] = np.array(list_train)
+print('len(list_train):', len(list_train))
 
 
 # for i in range(len(list_train)):
@@ -55,9 +56,7 @@ pairs[1] = np.array(list_train)
 
 
 def guess(img):
-	list_test = []
-	for _ in range(195):
-		list_test.append(img)
+	list_test = [img for _ in range(len(list_train))]
 	pairs[0] = np.array(list_test)
 	predictions = model.predict(pairs)
 	index = np.argmax(predictions)
@@ -74,4 +73,4 @@ if __name__ == '__main__':
 		result, predictmax, index = guess(image)
 		guesses.append({'name': name, 'result': names[index], 'predictmax': predictmax, 'index': index})
 
-pickle.dump(guesses, open('guesses_0.007_adapted_same_loading_as_augmented_nn.p', 'wb'))
+pickle.dump(guesses, open('siamese_lr_0.01_adapted.p', 'wb'))
