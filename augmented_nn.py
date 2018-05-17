@@ -170,12 +170,13 @@ def different_train(category):
 
 
 def different_test(category):
-	num_test_images = X_test_3ch.shape[0]
+	num_train_images = X_train_3ch.shape[0]
 	if category > 2:
-		category += 1
-		category = (category // 2) * 2 - 1
-		return (category + np.random.randint(2, num_test_images)) % num_test_images
-	return (category + np.random.randint(1, num_test_images)) % num_test_images
+		category *= 2
+		return (category + np.random.randint(2, num_train_images)) % num_train_images
+	category += 1
+	category = category // 2 + 4
+	return (category + np.random.randint(1, num_train_images)) % num_train_images
 
 
 def create_train_generator(datagen, batch_size=32):
@@ -199,13 +200,12 @@ def create_train_generator(datagen, batch_size=32):
 def create_test_generator(datagen=None, batch_size=32):
 	pairs = [np.zeros((batch_size, 150, 100, 3)) for i in range(2)]
 	targets = np.zeros((batch_size,))
-	# targets[batch_size//2:] = 1
-	targets[:] = 1
+	targets[batch_size//2:] = 1
 
 	while True:
 		for i in range(batch_size):
 			category_test = np.random.randint(0, X_test_3ch.shape[0])
-			category_train = same_test(category_test)
+			category_train = same_test(category_test) if i >= batch_size // 2 else different_test(category_test)
 			pairs[0][i, :, :, :] = X_test_3ch[category_test]
 			pairs[1][i, :, :, :] = X_train_3ch[category_train]
 		yield (pairs, targets)
@@ -227,7 +227,7 @@ def augmentation_fit():
 
 	datagen.fit(X_train_3ch)
 	train_generator = create_train_generator(datagen)
-	test_generator = create_test_generator(datagen)
+	test_generator = create_test_generator(datagen, batch_size=4)
 
 	# for (pairs, targets) in test_generator:
 	# 	print('started new one')
@@ -236,8 +236,10 @@ def augmentation_fit():
 	# 		result = 'Same' if targets[i] == 1 else 'Different'
 	# 		plt.suptitle(result)
 	# 		plt.subplot(1, 2, 1)
+	# 		plt.title('Test')
 	# 		plt.imshow(img1)
 	# 		plt.subplot(1, 2, 2)
+	# 		plt.title('Train')
 	# 		plt.imshow(img2)
 	# 		plt.show()
 
